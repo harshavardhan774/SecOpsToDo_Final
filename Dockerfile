@@ -1,17 +1,32 @@
 FROM node:20-alpine
 
+# ===== Base directory =====
 WORKDIR /app
 
+# ===== Backend setup =====
+COPY backend/package*.json ./backend/
+RUN cd backend && npm install
+
+# ===== Frontend setup =====
+COPY frontend/package*.json ./frontend/
+RUN cd frontend && npm install
+
+# ===== Copy full source =====
 COPY backend ./backend
 COPY frontend ./frontend
 
-WORKDIR /app/backend
-RUN npm install
+# ===== Build frontend =====
+RUN cd frontend && npm run build
 
-WORKDIR /app/frontend
-RUN npm install && npm run build
+# ===== Install serve for frontend =====
+RUN npm install -g serve
 
-WORKDIR /app/backend
-EXPOSE 5000
+# ===== Expose ports =====
+EXPOSE 3000 5000
 
-CMD ["node", "server.js"]
+# ===== Start both FE & BE =====
+CMD sh -c "\
+  node backend/server.js & \
+  serve -s frontend/build -l 3000 \
+"
+
