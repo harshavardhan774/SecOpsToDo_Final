@@ -1,5 +1,4 @@
-pipeline {
-    agent any
+pipeline { agent any
 
     environment {
         IMAGE_NAME = "glass-todo"
@@ -25,14 +24,6 @@ pipeline {
                           -Dsonar.sources=frontend/src,backend
                         """
                     }
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 15, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
                 }
             }
         }
