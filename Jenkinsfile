@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/harshavardhan774/SecOpsToDo_Final.git'
+                    url: 'https://github.com/<your-username>/glass-todo.git'
             }
         }
 
@@ -18,7 +18,8 @@ pipeline {
             steps {
                 withSonarQubeEnv('sonar-local') {
                     sh '''
-                    sonar-scanner
+                    sonar-scanner \
+                      -Dsonar.projectKey=glass-todo
                     '''
                 }
             }
@@ -41,4 +42,5 @@ pipeline {
         }
     }
 }
+
 
