@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         IMAGE_NAME = "glass-todo"
-        CONTAINER_NAME = "glass-todo-app"
     }
 
     stages {
@@ -42,20 +41,13 @@ pipeline {
             }
         }
 
-        /* ================= DOCKER RUN ================= */
-        stage('Docker Run') {
+        stage('Docker Run (Test)') {
             steps {
                 sh '''
-                docker rm -f $CONTAINER_NAME || true
-
-                docker run -d \
-                  --name $CONTAINER_NAME \
-                  -p 3000:3000 \
-                  -p 5000:5000 \
-                  $IMAGE_NAME
-
+                docker rm -f glass-todo-test || true
+                docker run -d --name glass-todo-test -p 5000:5000 $IMAGE_NAME
                 sleep 10
-                docker ps | grep $CONTAINER_NAME
+                docker ps | grep glass-todo
                 '''
             }
         }
@@ -63,10 +55,10 @@ pipeline {
 
     post {
         always {
-            echo "Pipeline finished"
+            sh 'docker rm -f glass-todo-test || true'
         }
         failure {
-            echo "Pipeline failed" 
+            echo "Pipeline failed"
         }
     }
 }
