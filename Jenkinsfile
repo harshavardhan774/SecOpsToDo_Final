@@ -5,6 +5,10 @@ pipeline {
         IMAGE_NAME = "glass-todo"
     }
 
+    tools {
+        sonarQubeScanner 'sonar-scanner'
+    }
+
     stages {
 
         stage('Checkout Code') {
@@ -42,5 +46,4 @@ pipeline {
         }
     }
 }
-
 
