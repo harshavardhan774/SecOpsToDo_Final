@@ -14,6 +14,24 @@ pipeline {
             }
         }
 
+        stage('SonarQube SAST') {
+            steps {
+                withSonarQubeEnv('sonar-local') {
+                    sh '''
+                    sonar-scanner
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('Docker Build') {
             steps {
                 sh '''
@@ -21,22 +39,6 @@ pipeline {
                 '''
             }
         }
-
-        stage('Docker Run (Test)') {
-            steps {
-                sh '''
-                docker rm -f glass-todo-test || true
-                docker run -d --name glass-todo-test -p 5000:5000 $IMAGE_NAME
-                sleep 10
-                docker ps | grep glass-todo
-                '''
-            }
-        }
-    }
-
-    post {
-        always {
-            sh 'docker rm -f glass-todo-test || true'
-        }
     }
 }
+
