@@ -18,13 +18,17 @@ pipeline {
             }
         }
 
-        stage('SonarQube SAST') {
+         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-local') {
-                    sh '''
-                    sonar-scanner \
-                      -Dsonar.projectKey=glass-todo
-                    '''
+                    script {
+                        def scannerHome = tool 'sonar-scanner'
+                        sh """
+                        ${scannerHome}/bin/sonar-scanner \
+                          -Dsonar.projectKey=glass-todo \
+                          -Dsonar.sources=frontend/src,backend
+                        """
+                    }
                 }
             }
         }
