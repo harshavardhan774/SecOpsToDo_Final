@@ -1,4 +1,5 @@
-pipeline { agent any
+pipeline {
+    agent any
 
     environment {
         IMAGE_NAME = "glass-todo"
@@ -30,9 +31,7 @@ pipeline { agent any
 
         stage('Docker Build') {
             steps {
-                sh '''
-                docker build --no-cache -t $IMAGE_NAME .
-                '''
+                sh 'docker build --no-cache -t $IMAGE_NAME .'
             }
         }
     }
