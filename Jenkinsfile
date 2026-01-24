@@ -37,6 +37,18 @@ pipeline {
             }
         }
 
+        stage('Trivy Image Scan') {
+            steps {
+                sh '''
+                echo "Running Trivy scan on Docker image"
+                trivy image \
+                  --exit-code 1 \
+                  --severity HIGH,CRITICAL \
+                  glass-todo
+                '''
+            }
+        }
+
         stage('Docker Run (Test)') {
             steps {
                 sh '''
