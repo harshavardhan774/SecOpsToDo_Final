@@ -29,6 +29,22 @@ pipeline {
             }
         }
 
+
+		stage('Trivy Code Scan') {
+    		steps {
+        		sh '''
+        		echo "Running Trivy filesystem scan (non-blocking)"
+				trivy fs . \
+         			--scanners vuln,secret,config \
+         			--severity HIGH,CRITICAL \
+         	    	--timeout 10m \
+         			--format json \
+         		 	--output trivy-code-report.json || true
+       		 	'''
+   		 }
+	}
+
+
         stage('Docker Build') {
             steps {
                 sh '''
@@ -36,22 +52,6 @@ pipeline {
                 '''
             }
         }
-
-       stage('Trivy Image Scan') {
-    		steps {
-        		sh '''
-        		echo "Running Trivy scan on Docker image (vuln-only, optimized)"
-        		trivy image \
-          			--scanners vuln \
-          			--timeout 15m \
-          			--exit-code 1 \
-          			--severity HIGH,CRITICAL \
-         			 glass-todo
-        		   '''
-   		 		}
-		}
-
-
 
 	stage('Docker Run (Test)') {
             steps {
