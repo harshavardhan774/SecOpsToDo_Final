@@ -3,11 +3,12 @@ pipeline {
 
     environment {
         IMAGE_NAME = "glass-todo"
+        APP_HOST   = "192.168.56.24"
+        APP_USER   = "star"
     }
 
     stages {
 
-        /* ================= CHECKOUT ================= */
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
@@ -15,50 +16,45 @@ pipeline {
             }
         }
 
-        /* ================= SONARQUBE ================= */
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-local') {
-                    script {
-                        def scannerHome = tool 'sonar-scanner'
-                        sh """
-                        ${scannerHome}/bin/sonar-scanner \
-                          -Dsonar.projectKey=glass-todo \
-                          -Dsonar.sources=frontend/src,backend \
-                          -Dsonar.exclusions=**/node_modules/**,**/build/**,**/*.css
-                        """
-                    }
+                    sh '''
+                    sonar-scanner \
+                      -Dsonar.projectKey=glass-todo \
+                      -Dsonar.sources=frontend/src,backend
+                    '''
                 }
             }
         }
 
-        /* ================= DOCKER BUILD ================= */
-        stage('Docker Build') {
+        stage('Docker Build (CI Server)') {
             steps {
                 sh '''
-                docker build --no-cache -t $IMAGE_NAME .
+                docker build -t glass-todo .
                 '''
             }
         }
 
-        stage('Docker Run (Test)') {
+        stage('Deploy to App Server (192.168.56.24)') {
             steps {
-                sh '''
-                docker rm -f glass-todo-test || true
-                docker run -d --name glass-todo-test -p 5000:5000 $IMAGE_NAME
-                sleep 10
-                docker ps | grep glass-todo
-                '''
-            }
-        }
-    }
+                sh """
+                ssh ${APP_USER}@${APP_HOST} '
+                  docker stop glass-todo || true
+                  docker rm glass-todo || true
+                '
 
-    post {
-        always {
-            sh 'docker rm -f glass-todo-test || true'
-        }
-        failure {
-            echo "Pipeline failed"
+                docker save glass-todo | ssh ${APP_USER}@${APP_HOST} docker load
+
+                ssh ${APP_USER}@${APP_HOST} '
+                  docker run -d \
+                    --name glass-todo \
+                    -p 3000:3000 \
+                    -p 5000:5000 \
+                    glass-todo
+                '
+                """
+            }
         }
     }
 }
