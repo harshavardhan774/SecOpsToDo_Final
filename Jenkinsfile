@@ -37,19 +37,21 @@ pipeline {
             }
         }
 
-        stage('Trivy Image Scan') {
-	    steps {
-	        sh '''
-	        echo "Running Trivy scan on Docker image (vulns only)"
-	        trivy image \
-	          --scanners vuln \
-	          --timeout 15m \
-	          --exit-code 1 \
-	          --severity HIGH,CRITICAL \
-	          glass-todo
-	        '''
-	    }
-	}
+       stage('Trivy Image Scan') {
+    		steps {
+        		sh '''
+        		echo "Running Trivy scan on Docker image (vuln-only, optimized)"
+        		trivy image \
+          			--scanners vuln \
+          			--timeout 15m \
+          			--exit-code 1 \
+          			--severity HIGH,CRITICAL \
+         			 glass-todo
+        		   '''
+   		 		}
+		}
+
+
 
 	stage('Docker Run (Test)') {
             steps {
