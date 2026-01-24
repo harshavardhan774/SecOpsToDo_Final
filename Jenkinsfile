@@ -3,8 +3,6 @@ pipeline {
 
     environment {
         IMAGE_NAME = "glass-todo"
-        APP_HOST   = "192.168.56.24"
-        APP_USER   = "star"
     }
 
     stages {
@@ -12,11 +10,11 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/harshavardhan774/SecOpsToDo_Final.git'
+                    url: 'https://github.com/<your-username>/glass-todo.git'
             }
         }
 
-        stage('SonarQube Analysis') {
+	stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-local') {
                     sh '''
@@ -28,33 +26,29 @@ pipeline {
             }
         }
 
-        stage('Docker Build (CI Server)') {
+        stage('Docker Build') {
             steps {
                 sh '''
-                docker build -t glass-todo .
+                docker build --no-cache -t $IMAGE_NAME .
                 '''
             }
         }
 
-        stage('Deploy to App Server (192.168.56.24)') {
+        stage('Docker Run (Test)') {
             steps {
-                sh """
-                ssh ${APP_USER}@${APP_HOST} '
-                  docker stop glass-todo || true
-                  docker rm glass-todo || true
-                '
-
-                docker save glass-todo | ssh ${APP_USER}@${APP_HOST} docker load
-
-                ssh ${APP_USER}@${APP_HOST} '
-                  docker run -d \
-                    --name glass-todo \
-                    -p 3000:3000 \
-                    -p 5000:5000 \
-                    glass-todo
-                '
-                """
+                sh '''
+                docker rm -f glass-todo-test || true
+                docker run -d --name glass-todo-test -p 5000:5000 $IMAGE_NAME
+                sleep 10
+                docker ps | grep glass-todo
+                '''
             }
+        }
+    }
+
+    post {
+        always {
+            sh 'docker rm -f glass-todo-test || true'
         }
     }
 }
