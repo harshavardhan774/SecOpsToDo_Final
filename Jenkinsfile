@@ -89,6 +89,22 @@ pipeline {
         }
     }
 
+		stage('OWASP ZAP DAST Scan') {
+    		steps {
+       			 sh '''
+        		 echo "Running OWASP ZAP baseline scan"
+
+     		     docker run --rm \
+          		 	-v $(pwd):/zap/wrk \
+         		  	zaproxy/zap-stable \
+        		  	zap-baseline.py \
+         		  	-t http://192.168.56.24:5000 \
+         		  	-r zap-report.html || true
+        		  '''
+    	}
+	}
+
+
     post {
         always {
             sh 'docker rm -f glass-todo-test || true'
