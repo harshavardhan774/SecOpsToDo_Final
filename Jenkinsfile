@@ -92,6 +92,7 @@ pipeline {
                 echo "Running OWASP ZAP baseline scan"
 
                 docker run --rm \
+                  --user $(id -u jenkins):$(id -g jenkins) \
                   -v $(pwd):/zap/wrk \
                   zaproxy/zap-stable \
                   zap-baseline.py \
