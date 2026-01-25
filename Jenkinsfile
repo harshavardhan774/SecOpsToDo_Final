@@ -29,21 +29,19 @@ pipeline {
             }
         }
 
-
-		stage('Trivy Code Scan') {
-    		steps {
-        		sh '''
-        		echo "Running Trivy filesystem scan (non-blocking)"
-				trivy fs . \
-         			--scanners vuln,secret,config \
-         			--severity HIGH,CRITICAL \
-         	    	--timeout 10m \
-         			--format json \
-         		 	--output trivy-code-report.json || true
-       		 	'''
-   		 }
-	}
-
+        stage('Trivy Code Scan') {
+            steps {
+                sh '''
+                echo "Running Trivy filesystem scan (non-blocking)"
+                trivy fs . \
+                  --scanners vuln,secret,config \
+                  --severity HIGH,CRITICAL \
+                  --timeout 10m \
+                  --format json \
+                  --output trivy-code-report.json || true
+                '''
+            }
+        }
 
         stage('Docker Build') {
             steps {
@@ -53,7 +51,7 @@ pipeline {
             }
         }
 
-	stage('Docker Run (Test)') {
+        stage('Docker Run (Test)') {
             steps {
                 sh '''
                 docker rm -f glass-todo-test || true
@@ -87,23 +85,22 @@ pipeline {
                 '''
             }
         }
+
+        stage('OWASP ZAP DAST Scan') {
+            steps {
+                sh '''
+                echo "Running OWASP ZAP baseline scan"
+
+                docker run --rm \
+                  -v $(pwd):/zap/wrk \
+                  zaproxy/zap-stable \
+                  zap-baseline.py \
+                  -t http://192.168.56.24:5000 \
+                  -r zap-report.html || true
+                '''
+            }
+        }
     }
-
-		stage('OWASP ZAP DAST Scan') {
-    		steps {
-       			 sh '''
-        		 echo "Running OWASP ZAP baseline scan"
-
-     		     docker run --rm \
-          		 	-v $(pwd):/zap/wrk \
-         		  	zaproxy/zap-stable \
-        		  	zap-baseline.py \
-         		  	-t http://192.168.56.24:5000 \
-         		  	-r zap-report.html || true
-        		  '''
-    	}
-	}
-
 
     post {
         always {
