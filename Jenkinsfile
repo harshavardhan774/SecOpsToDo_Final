@@ -93,11 +93,13 @@ pipeline {
 
                 docker run --rm \
                   --user $(id -u jenkins):$(id -g jenkins) \
+                  -e HOME=/zap/wrk \
                   -v $(pwd):/zap/wrk \
                   zaproxy/zap-stable \
                   zap-baseline.py \
                   -t http://192.168.56.24:5000 \
                   -r zap-report.html || true
+
                 '''
             }
         }
