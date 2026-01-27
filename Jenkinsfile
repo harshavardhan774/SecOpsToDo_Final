@@ -109,10 +109,26 @@ pipeline {
             sh 'docker rm -f glass-todo-test || true'
         }
 
+        success {
+            emailext(
+                to: 'harshavardhantingare74@gmail.com',
+                subject: "Jenkins Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                Build SUCCESS 
+
+                Job: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+
+                View details:
+                ${env.BUILD_URL}
+                """
+            )
+        }
+
         failure {
             emailext(
                 to: 'harshavardhantingare74@gmail.com',
-                subject: "Jenkins Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                subject: "Jenkins Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
                 Build FAILED 
 
@@ -126,4 +142,3 @@ pipeline {
         }
     }
 }
-
