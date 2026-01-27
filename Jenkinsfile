@@ -99,7 +99,6 @@ pipeline {
                   zap-baseline.py \
                   -t http://192.168.56.24:5000 \
                   -r zap-report.html || true
-
                 '''
             }
         }
@@ -109,5 +108,22 @@ pipeline {
         always {
             sh 'docker rm -f glass-todo-test || true'
         }
+
+        failure {
+            emailext(
+                to: 'harshavardhantingare74@gmail.com',
+                subject: "Jenkins Build Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                Build FAILED 
+
+                Job: ${env.JOB_NAME}
+                Build Number: ${env.BUILD_NUMBER}
+
+                Check details here:
+                ${env.BUILD_URL}
+                """
+            )
+        }
     }
 }
+
