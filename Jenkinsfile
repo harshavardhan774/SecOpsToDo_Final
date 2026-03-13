@@ -17,13 +17,16 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-local') {
-                    script {
-                        def scannerHome = tool 'sonar-scanner'
-                        sh """
-                        ${scannerHome}/bin/sonar-scanner \
-                          -Dsonar.projectKey=glass-todo \
-                          -Dsonar.sources=.
-                        """
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        script {
+                            def scannerHome = tool 'sonar-scanner'
+                            sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                            -Dsonar.projectKey=glass-todo \
+                            -Dsonar.sources=. \
+                            -Dsonar.login=$SONAR_TOKEN
+                            """
+                        }
                     }
                 }
             }
@@ -114,14 +117,14 @@ pipeline {
                 to: 'harshavardhantingare74@gmail.com',
                 subject: "Jenkins Build SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
-                Build SUCCESS
+Build SUCCESS
 
-                Job: ${env.JOB_NAME}
-                Build Number: ${env.BUILD_NUMBER}
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
 
-                View details:
-                ${env.BUILD_URL}
-                """
+View details:
+${env.BUILD_URL}
+"""
             )
         }
 
@@ -130,14 +133,14 @@ pipeline {
                 to: 'harshavardhantingare74@gmail.com',
                 subject: "Jenkins Build FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
                 body: """
-                Build FAILED
+Build FAILED
 
-                Job: ${env.JOB_NAME}
-                Build Number: ${env.BUILD_NUMBER}
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
 
-                Check details here:
-                ${env.BUILD_URL}
-                """
+Check details here:
+${env.BUILD_URL}
+"""
             )
         }
     }
